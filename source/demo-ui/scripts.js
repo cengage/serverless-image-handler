@@ -46,6 +46,8 @@ function getPreviewImage() {
     const _smartCrop = $(`#editor-smart-crop`).first().prop("checked");
     const _smartCropIndex = $(`#editor-smart-crop-index`).first().val();
     const _smartCropPadding = $(`#editor-smart-crop-padding`).first().val();
+    const _highlight = $(`#editor-highlight`).first().prop("checked");
+    const _highlightBoxes = $(`#editor-highlight-boxes`).first().val();
     // Setup the edits object
     const _edits = {}
     _edits.resize = {};
@@ -73,6 +75,10 @@ function getPreviewImage() {
         if (_smartCropIndex !== "") { _edits.smartCrop.faceIndex = Number(_smartCropIndex) }
         if (_smartCropPadding !== "") { _edits.smartCrop.padding = Number(_smartCropPadding) }
     }
+    if (_highlight) {
+        _edits.highlight = [_highlightBoxes];
+    }
+
     if (Object.keys(_edits.resize).length === 0) { delete _edits.resize };
     // Gather the bucket and key names
     const bucketName = $(`#img-original`).first().attr(`data-bucket`);
