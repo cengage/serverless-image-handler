@@ -79,11 +79,11 @@ function getPreviewImage() {
         const coords = _highlightBoxes.split(/[,\n]/);
         let arr = [];
         while ( coords.length >= 4) {
-            const left = coords.shift();
-            const top = coords.shift();
-            const width = coords.shift();
-            const height = coords.shift();
-            arr.push({left: left, top: top, width: width, height:height});
+            const x = parseInt(coords.shift())
+            const y = parseInt(coords.shift());
+            const w = parseInt(coords.shift());
+            const h = parseInt(coords.shift());
+            arr.push({x, y, w, h});
         }
         _edits.highlight = arr;
     }

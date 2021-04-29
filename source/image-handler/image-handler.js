@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 const sharp = require('sharp');
+const Color = require('color');
 
 class ImageHandler {
     constructor(s3, rekognition) {
@@ -65,30 +66,25 @@ class ImageHandler {
     async applyEdits(image, edits) {
         // highlight before other operations
         if (edits.highlight !== undefined) {
+            let params = [];
             for (const highlight of edits.highlight) {
-                const left = parseInt(highlight.left);
-                const top = parseInt(highlight.top);
-                const width = parseInt(highlight.width);
-                const height = parseInt(highlight.height);
-
-                const params = [
-                    {
-                        input: {
-                            create: {
-                                width: width,
-                                height: height,
-                                channels: 4,
-                                background: {r: 255, g: 255, b: 0, alpha: 0.75}
-                            }
-                        },
-                        blend: 'over',
-                        top: top,
-                        left: left
-                    }
-                ];
-                let data = await image.composite(params).toBuffer();
-                image = sharp(data).withMetadata();
+                const color = Color(highlight.c || "#FFFF00").alpha(parseFloat(highlight.a) || 0.75);
+                params.push({
+                    input: {
+                        create: {
+                            width: parseInt(highlight.w) || 1,
+                            height: parseInt(highlight.h) || 1,
+                            channels: 4,
+                            background: color
+                        }
+                    },
+                    blend: 'over',
+                    top: parseInt(highlight.y) || 0,
+                    left: parseInt(highlight.x) || 0
+                });
             }
+            let data = await image.composite(params).toBuffer();
+            image = sharp(data).withMetadata();
             delete edits.highlight;
         }
 
