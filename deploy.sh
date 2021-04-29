@@ -8,16 +8,14 @@ SCRIPT_PATH=$(cd "$(dirname "$0")"; pwd)
 cd "$SCRIPT_PATH"/deployment
 
 if [[ -z $1 ]]; then
-  LAST_VERSION=`aws s3 ls callisto-sih-test-us-east-1/callisto-sih-test/ | grep PRE | sed -e 's/.*PRE //;s/\/$//' | tail -1`
-  IFS=- read version build <<< $LAST_VERSION
-  ((build++))
-  NEXT_VERSION=${BASE_VERSION}-${build}
-  echo "Deploying: $NEXT_VERSION (previous: $LAST_VERSION)"
-  export VERSION=$NEXT_VERSION
+  LAST_BUILD=`aws s3 ls callisto-sih-test-us-east-1/callisto-sih-test/ | grep PRE | sed -e 's/.*PRE .*-//;s/\/$//' | sort -nr | head -1`
+  ((LAST_BUILD++))
+  export VERSION=${BASE_VERSION}-${LAST_BUILD}
 else
+  # Force build number via param
   export VERSION=$BASE_VERSION-$1
-  echo Deploying: $VERSION
 fi
+echo "Deploying: ${VERSION}"
 
 ./build-s3-dist.sh $DIST_OUTPUT_BUCKET $SOLUTION_NAME $VERSION
 
