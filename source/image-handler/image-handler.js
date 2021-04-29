@@ -23,13 +23,13 @@ class ImageHandler {
             const keys = Object.keys(edits);
 
             if (keys.includes('rotate') && edits.rotate === null) {
-                image = sharp(originalImage, { failOnError: false });
+                image = sharp(originalImage, {failOnError: false});
             } else {
-                const metadata = await sharp(originalImage, { failOnError: false }).metadata();
+                const metadata = await sharp(originalImage, {failOnError: false}).metadata();
                 if (metadata.orientation) {
-                    image = sharp(originalImage, { failOnError: false }).withMetadata({ orientation: metadata.orientation });
+                    image = sharp(originalImage, {failOnError: false}).withMetadata({orientation: metadata.orientation});
                 } else {
-                    image = sharp(originalImage, { failOnError: false }).withMetadata();
+                    image = sharp(originalImage, {failOnError: false}).withMetadata();
                 }
             }
 
@@ -63,6 +63,35 @@ class ImageHandler {
      * @param {object} edits - The edits to be made to the original image.
      */
     async applyEdits(image, edits) {
+        // highlight before other operations
+        if (edits.highlight !== undefined) {
+            for (const highlight of edits.highlight) {
+                const left = parseInt(highlight.left);
+                const top = parseInt(highlight.top);
+                const width = parseInt(highlight.width);
+                const height = parseInt(highlight.height);
+
+                const params = [
+                    {
+                        input: {
+                            create: {
+                                width: width,
+                                height: height,
+                                channels: 4,
+                                background: {r: 255, g: 255, b: 0, alpha: 0.75}
+                            }
+                        },
+                        blend: 'over',
+                        top: top,
+                        left: left
+                    }
+                ];
+                let data = await image.composite(params).toBuffer();
+                image = sharp(data).withMetadata();
+            }
+            delete edits.highlight;
+        }
+
         if (edits.resize === undefined) {
             edits.resize = {};
             edits.resize.fit = 'inside';
@@ -79,14 +108,14 @@ class ImageHandler {
                 let imageMetadata = metadata;
                 if (edits.resize) {
                     let imageBuffer = await image.toBuffer();
-                    imageMetadata = await sharp(imageBuffer).resize({ edits: { resize: edits.resize }}).metadata();
+                    imageMetadata = await sharp(imageBuffer).resize({edits: {resize: edits.resize}}).metadata();
                 }
 
-                const { bucket, key, wRatio, hRatio, alpha } = value;
+                const {bucket, key, wRatio, hRatio, alpha} = value;
                 const overlay = await this.getOverlayImage(bucket, key, wRatio, hRatio, alpha, imageMetadata);
                 const overlayMetadata = await sharp(overlay).metadata();
 
-                let { options } = value;
+                let {options} = value;
                 if (options) {
                     if (options.left !== undefined) {
                         let left = options.left;
@@ -124,7 +153,7 @@ class ImageHandler {
                     }
                 }
 
-                const params = [{ ...options, input: overlay }];
+                const params = [{...options, input: overlay}];
                 image.composite(params);
             } else if (editKey === 'smartCrop') {
                 const options = value;
@@ -140,44 +169,43 @@ class ImageHandler {
                         message: 'The padding value you provided exceeds the boundaries of the original image. Please try choosing a smaller value or applying padding via Sharp for greater specificity.'
                     };
                 }
-            }  else if (editKey === 'roundCrop') {
+            } else if (editKey === 'roundCrop') {
                 const options = value;
                 const imageBuffer = await image.toBuffer({resolveWithObject: true});
                 let width = imageBuffer.info.width;
                 let height = imageBuffer.info.height;
-                
+
                 //check for parameters, if not provided, set to defaults
-                const radiusX = options.rx && options.rx >= 0? options.rx : Math.min(width, height) / 2;
-                const radiusY = options.ry && options.ry >= 0? options.ry : Math.min(width, height) / 2;
+                const radiusX = options.rx && options.rx >= 0 ? options.rx : Math.min(width, height) / 2;
+                const radiusY = options.ry && options.ry >= 0 ? options.ry : Math.min(width, height) / 2;
                 const topOffset = options.top && options.top >= 0 ? options.top : height / 2;
                 const leftOffset = options.left && options.left >= 0 ? options.left : width / 2;
-                
-                if(options)
-                {
+
+                if (options) {
                     const ellipse = Buffer.from(`<svg viewBox="0 0 ${width} ${height}"> <ellipse cx="${leftOffset}" cy="${topOffset}" rx="${radiusX}" ry="${radiusY}" /></svg>`);
-                    const params = [{ input: ellipse, blend: 'dest-in' }];
+                    const params = [{input: ellipse, blend: 'dest-in'}];
                     let data = await image.composite(params).toBuffer();
                     image = sharp(data).withMetadata().trim();
                 }
-                
+
             } else if (editKey === 'contentModeration') {
                 const options = value;
                 const imageBuffer = await image.toBuffer({resolveWithObject: true});
                 const inappropriateContent = await this.detectInappropriateContent(imageBuffer.data, options);
-                const blur = options.hasOwnProperty('blur') ? Math.ceil(Number(options.blur)) : 50; 
-                
-                if(options && (blur >= 0.3 && blur <= 1000)) {
-                    if(options.moderationLabels){
-                        for(let item of inappropriateContent.ModerationLabels) {
-                            if (options.moderationLabels.includes(item.Name)){
+                const blur = options.hasOwnProperty('blur') ? Math.ceil(Number(options.blur)) : 50;
+
+                if (options && (blur >= 0.3 && blur <= 1000)) {
+                    if (options.moderationLabels) {
+                        for (let item of inappropriateContent.ModerationLabels) {
+                            if (options.moderationLabels.includes(item.Name)) {
                                 image.blur(blur);
                                 break;
                             }
                         }
-                    } else if(inappropriateContent.ModerationLabels.length) {
-                        image.blur(blur);                                   
+                    } else if (inappropriateContent.ModerationLabels.length) {
+                        image.blur(blur);
                     }
-                } 
+                }
 
             } else {
                 image[editKey](value);
@@ -198,9 +226,9 @@ class ImageHandler {
      * @param {object} sourceImageMetadata - The metadata of the source image.
      */
     async getOverlayImage(bucket, key, wRatio, hRatio, alpha, sourceImageMetadata) {
-        const params = { Bucket: bucket, Key: key };
+        const params = {Bucket: bucket, Key: key};
         try {
-            const { width, height } = sourceImageMetadata;
+            const {width, height} = sourceImageMetadata;
             const overlayImage = await this.s3.getObject(params).promise();
             let resize = {
                 fit: 'inside'
@@ -256,10 +284,10 @@ class ImageHandler {
         const padding = (options.padding !== undefined) ? parseFloat(options.padding) : 0;
         // Calculate the smart crop area
         const cropArea = {
-            left : parseInt((boundingBox.Left * metadata.width) - padding),
-            top : parseInt((boundingBox.Top * metadata.height) - padding),
-            width : parseInt((boundingBox.Width * metadata.width) + (padding * 2)),
-            height : parseInt((boundingBox.Height * metadata.height) + (padding * 2)),
+            left: parseInt((boundingBox.Left * metadata.width) - padding),
+            top: parseInt((boundingBox.Top * metadata.height) - padding),
+            width: parseInt((boundingBox.Width * metadata.width) + (padding * 2)),
+            height: parseInt((boundingBox.Height * metadata.height) + (padding * 2)),
         }
         // Return the crop area
         return cropArea;
@@ -272,20 +300,19 @@ class ImageHandler {
      * confidence decreases for detected faces within the image.
      */
     async getBoundingBox(imageBuffer, faceIndex) {
-        const params = { Image: { Bytes: imageBuffer }};
+        const params = {Image: {Bytes: imageBuffer}};
         const faceIdx = (faceIndex !== undefined) ? faceIndex : 0;
         try {
             const response = await this.rekognition.detectFaces(params).promise();
-            if(response.FaceDetails.length <= 0) {
+            if (response.FaceDetails.length <= 0) {
                 return {Height: 1, Left: 0, Top: 0, Width: 1};
             }
             let boundingBox = {};
 
             //handle bounds > 1 and < 0
-            for (let bound in response.FaceDetails[faceIdx].BoundingBox)
-            {
-                if (response.FaceDetails[faceIdx].BoundingBox[bound] < 0 ) boundingBox[bound] = 0; 
-                else if (response.FaceDetails[faceIdx].BoundingBox[bound] > 1) boundingBox[bound] = 1; 
+            for (let bound in response.FaceDetails[faceIdx].BoundingBox) {
+                if (response.FaceDetails[faceIdx].BoundingBox[bound] < 0) boundingBox[bound] = 0;
+                else if (response.FaceDetails[faceIdx].BoundingBox[bound] > 1) boundingBox[bound] = 1;
                 else boundingBox[bound] = response.FaceDetails[faceIdx].BoundingBox[bound];
             }
 
@@ -315,14 +342,14 @@ class ImageHandler {
             }
         }
     }
-    
+
     /**
      * Detects inappropriate content in an image.
      * @param {Sharp} imageBuffer - The original image.
      * @param {Object} options - The options to pass to the dectectModerationLables Rekognition function
      */
     async detectInappropriateContent(imageBuffer, options) {
-        
+
         const params = {
             Image: {Bytes: imageBuffer},
             MinConfidence: options.minConfidence ? parseFloat(options.minConfidence) : 75
@@ -331,7 +358,7 @@ class ImageHandler {
         try {
             const response = await this.rekognition.detectModerationLabels(params).promise();
             return response;
-        } catch(err) {
+        } catch (err) {
             console.error(err)
             throw {
                 status: err.statusCode ? err.statusCode : 500,

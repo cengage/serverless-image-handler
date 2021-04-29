@@ -76,7 +76,16 @@ function getPreviewImage() {
         if (_smartCropPadding !== "") { _edits.smartCrop.padding = Number(_smartCropPadding) }
     }
     if (_highlight) {
-        _edits.highlight = [_highlightBoxes];
+        const coords = _highlightBoxes.split(/[,\n]/);
+        let arr = [];
+        while ( coords.length >= 4) {
+            const left = coords.shift();
+            const top = coords.shift();
+            const width = coords.shift();
+            const height = coords.shift();
+            arr.push({left: left, top: top, width: width, height:height});
+        }
+        _edits.highlight = arr;
     }
 
     if (Object.keys(_edits.resize).length === 0) { delete _edits.resize };

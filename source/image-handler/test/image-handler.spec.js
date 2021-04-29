@@ -29,9 +29,9 @@ const sharp = require('sharp');
 // ----------------------------------------------------------------------------
 // [async] process()
 // ----------------------------------------------------------------------------
-describe('process()', function() {
-    describe('001/default', function() {
-        it('Should pass if the output image is different from the input image with edits applied', async function() {
+describe('process()', function () {
+    describe('001/default', function () {
+        it('Should pass if the output image is different from the input image with edits applied', async function () {
             // Arrange
             const request = {
                 requestType: "default",
@@ -50,8 +50,8 @@ describe('process()', function() {
             expect(result).not.toEqual(request.originalImage);
         });
     });
-    describe('002/withToFormat', function() {
-        it('Should pass if the output image is in a different format than the original image', async function() {
+    describe('002/withToFormat', function () {
+        it('Should pass if the output image is in a different format than the original image', async function () {
             // Arrange
             const request = {
                 requestType: "default",
@@ -71,8 +71,8 @@ describe('process()', function() {
             expect(result).not.toEqual(request.originalImage);
         });
     });
-    describe('003/noEditsSpecified', function() {
-        it('Should pass if no edits are specified and the original image is returned', async function() {
+    describe('003/noEditsSpecified', function () {
+        it('Should pass if no edits are specified and the original image is returned', async function () {
             // Arrange
             const request = {
                 requestType: "default",
@@ -87,8 +87,8 @@ describe('process()', function() {
             expect(result).toEqual(request.originalImage.toString('base64'));
         });
     });
-    describe('004/ExceedsLambdaPayloadLimit', function() {
-        it('Should fail the return payload is larger than 6MB', async function() {
+    describe('004/ExceedsLambdaPayloadLimit', function () {
+        it('Should fail the return payload is larger than 6MB', async function () {
             // Arrange
             const request = {
                 requestType: "default",
@@ -110,8 +110,8 @@ describe('process()', function() {
             }
         });
     });
-    describe('005/RotateNull', function() {
-        it('Should pass if rotate is null and return image without EXIF and ICC', async function() {
+    describe('005/RotateNull', function () {
+        it('Should pass if rotate is null and return image without EXIF and ICC', async function () {
             // Arrange
             const originalImage = fs.readFileSync('./test/image/test.jpg');
             const request = {
@@ -133,8 +133,8 @@ describe('process()', function() {
             expect(metadata).not.toHaveProperty('orientation');
         });
     });
-    describe('006/ImageOrientation', function() {
-        it('Should pass if the original image has orientation', async function() {
+    describe('006/ImageOrientation', function () {
+        it('Should pass if the original image has orientation', async function () {
             // Arrange
             const originalImage = fs.readFileSync('./test/image/test.jpg');
             const request = {
@@ -159,8 +159,8 @@ describe('process()', function() {
             expect(metadata.orientation).toEqual(3);
         });
     });
-    describe('007/ImageWithoutOrientation', function() {
-        it('Should pass if the original image does not have orientation', async function() {
+    describe('007/ImageWithoutOrientation', function () {
+        it('Should pass if the original image does not have orientation', async function () {
             // Arrange
             const request = {
                 requestType: "default",
@@ -187,12 +187,12 @@ describe('process()', function() {
 // ----------------------------------------------------------------------------
 // [async] applyEdits()
 // ----------------------------------------------------------------------------
-describe('applyEdits()', function() {
-    describe('001/standardEdits', function() {
-        it('Should pass if a series of standard edits are provided to the function', async function() {
+describe('applyEdits()', function () {
+    describe('001/standardEdits', function () {
+        it('Should pass if a series of standard edits are provided to the function', async function () {
             // Arrange
             const originalImage = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
-            const image = sharp(originalImage, { failOnError: false }).withMetadata();
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
             const edits = {
                 grayscale: true,
                 flip: true
@@ -207,11 +207,11 @@ describe('applyEdits()', function() {
             expect(combinedResults).toEqual(true);
         });
     });
-    describe('002/overlay', function() {
-        it('Should pass if an edit with the overlayWith keyname is passed to the function', async function() {
+    describe('002/overlay', function () {
+        it('Should pass if an edit with the overlayWith keyname is passed to the function', async function () {
             // Arrange
             const originalImage = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
-            const image = sharp(originalImage, { failOnError: false }).withMetadata();
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
             const edits = {
                 overlayWith: {
                     bucket: 'aaa',
@@ -222,7 +222,7 @@ describe('applyEdits()', function() {
             mockAws.getObject.mockImplementationOnce(() => {
                 return {
                     promise() {
-                        return Promise.resolve({ Body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64') });
+                        return Promise.resolve({Body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64')});
                     }
                 };
             });
@@ -230,15 +230,15 @@ describe('applyEdits()', function() {
             const imageHandler = new ImageHandler(s3, rekognition);
             const result = await imageHandler.applyEdits(image, edits);
             // Assert
-            expect(mockAws.getObject).toHaveBeenCalledWith({ Bucket: 'aaa', Key: 'bbb' });
+            expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'aaa', Key: 'bbb'});
             expect(result.options.input.buffer).toEqual(originalImage);
         });
     });
-    describe('003/overlay/options/smallerThanZero', function() {
-        it('Should pass if an edit with the overlayWith keyname is passed to the function', async function() {
+    describe('003/overlay/options/smallerThanZero', function () {
+        it('Should pass if an edit with the overlayWith keyname is passed to the function', async function () {
             // Arrange
             const originalImage = Buffer.from('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAAEAAQDAREAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACv/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AfwD/2Q==', 'base64');
-            const image = sharp(originalImage, { failOnError: false }).withMetadata();
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
             const edits = {
                 overlayWith: {
                     bucket: 'aaa',
@@ -253,7 +253,7 @@ describe('applyEdits()', function() {
             mockAws.getObject.mockImplementationOnce(() => {
                 return {
                     promise() {
-                        return Promise.resolve({ Body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64') });
+                        return Promise.resolve({Body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64')});
                     }
                 };
             });
@@ -261,15 +261,15 @@ describe('applyEdits()', function() {
             const imageHandler = new ImageHandler(s3, rekognition);
             const result = await imageHandler.applyEdits(image, edits);
             // Assert
-            expect(mockAws.getObject).toHaveBeenCalledWith({ Bucket: 'aaa', Key: 'bbb' });
+            expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'aaa', Key: 'bbb'});
             expect(result.options.input.buffer).toEqual(originalImage);
         });
     });
-    describe('004/overlay/options/greaterThanZero', function() {
-        it('Should pass if an edit with the overlayWith keyname is passed to the function', async function() {
+    describe('004/overlay/options/greaterThanZero', function () {
+        it('Should pass if an edit with the overlayWith keyname is passed to the function', async function () {
             // Arrange
             const originalImage = Buffer.from('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAAEAAQDAREAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACv/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AfwD/2Q==', 'base64');
-            const image = sharp(originalImage, { failOnError: false }).withMetadata();
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
             const edits = {
                 overlayWith: {
                     bucket: 'aaa',
@@ -284,7 +284,7 @@ describe('applyEdits()', function() {
             mockAws.getObject.mockImplementationOnce(() => {
                 return {
                     promise() {
-                        return Promise.resolve({ Body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64') });
+                        return Promise.resolve({Body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64')});
                     }
                 };
             });
@@ -292,15 +292,15 @@ describe('applyEdits()', function() {
             const imageHandler = new ImageHandler(s3, rekognition);
             const result = await imageHandler.applyEdits(image, edits);
             // Assert
-            expect(mockAws.getObject).toHaveBeenCalledWith({ Bucket: 'aaa', Key: 'bbb' });
+            expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'aaa', Key: 'bbb'});
             expect(result.options.input.buffer).toEqual(originalImage);
         });
     });
-    describe('005/overlay/options/percentage/greaterThanZero', function() {
-        it('Should pass if an edit with the overlayWith keyname is passed to the function', async function() {
+    describe('005/overlay/options/percentage/greaterThanZero', function () {
+        it('Should pass if an edit with the overlayWith keyname is passed to the function', async function () {
             // Arrange
             const originalImage = Buffer.from('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAAEAAQDAREAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACv/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AfwD/2Q==', 'base64');
-            const image = sharp(originalImage, { failOnError: false }).withMetadata();
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
             const edits = {
                 overlayWith: {
                     bucket: 'aaa',
@@ -315,7 +315,7 @@ describe('applyEdits()', function() {
             mockAws.getObject.mockImplementationOnce(() => {
                 return {
                     promise() {
-                        return Promise.resolve({ Body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64') });
+                        return Promise.resolve({Body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64')});
                     }
                 };
             });
@@ -323,15 +323,15 @@ describe('applyEdits()', function() {
             const imageHandler = new ImageHandler(s3, rekognition);
             const result = await imageHandler.applyEdits(image, edits);
             // Assert
-            expect(mockAws.getObject).toHaveBeenCalledWith({ Bucket: 'aaa', Key: 'bbb' });
+            expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'aaa', Key: 'bbb'});
             expect(result.options.input.buffer).toEqual(originalImage);
         });
     });
-    describe('006/overlay/options/percentage/smallerThanZero', function() {
-        it('Should pass if an edit with the overlayWith keyname is passed to the function', async function() {
+    describe('006/overlay/options/percentage/smallerThanZero', function () {
+        it('Should pass if an edit with the overlayWith keyname is passed to the function', async function () {
             // Arrange
             const originalImage = Buffer.from('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAAEAAQDAREAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACv/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AfwD/2Q==', 'base64');
-            const image = sharp(originalImage, { failOnError: false }).withMetadata();
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
             const edits = {
                 overlayWith: {
                     bucket: 'aaa',
@@ -346,7 +346,7 @@ describe('applyEdits()', function() {
             mockAws.getObject.mockImplementationOnce(() => {
                 return {
                     promise() {
-                        return Promise.resolve({ Body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64') });
+                        return Promise.resolve({Body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64')});
                     }
                 };
             });
@@ -354,15 +354,15 @@ describe('applyEdits()', function() {
             const imageHandler = new ImageHandler(s3, rekognition);
             const result = await imageHandler.applyEdits(image, edits);
             // Assert
-            expect(mockAws.getObject).toHaveBeenCalledWith({ Bucket: 'aaa', Key: 'bbb' });
+            expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'aaa', Key: 'bbb'});
             expect(result.options.input.buffer).toEqual(originalImage);
         });
     });
-    describe('007/smartCrop', function() {
-        it('Should pass if an edit with the smartCrop keyname is passed to the function', async function() {
+    describe('007/smartCrop', function () {
+        it('Should pass if an edit with the smartCrop keyname is passed to the function', async function () {
             // Arrange
             const originalImage = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
-            const image = sharp(originalImage, { failOnError: false }).withMetadata();
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
             const buffer = await image.toBuffer();
             const edits = {
                 smartCrop: {
@@ -391,15 +391,15 @@ describe('applyEdits()', function() {
             const imageHandler = new ImageHandler(s3, rekognition);
             const result = await imageHandler.applyEdits(image, edits);
             // Assert
-            expect(mockAws.detectFaces).toHaveBeenCalledWith({ Image: { Bytes: buffer }});
+            expect(mockAws.detectFaces).toHaveBeenCalledWith({Image: {Bytes: buffer}});
             expect(result.options.input).not.toEqual(originalImage);
         });
     });
-    describe('008/smartCrop/paddingOutOfBoundsError', function() {
-        it('Should pass if an excessive padding value is passed to the smartCrop filter', async function() {
+    describe('008/smartCrop/paddingOutOfBoundsError', function () {
+        it('Should pass if an excessive padding value is passed to the smartCrop filter', async function () {
             // Arrange
             const originalImage = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
-            const image = sharp(originalImage, { failOnError: false }).withMetadata();
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
             const buffer = await image.toBuffer();
             const edits = {
                 smartCrop: {
@@ -430,7 +430,7 @@ describe('applyEdits()', function() {
                 await imageHandler.applyEdits(image, edits);
             } catch (error) {
                 // Assert
-                expect(mockAws.detectFaces).toHaveBeenCalledWith({ Image: { Bytes: buffer }});
+                expect(mockAws.detectFaces).toHaveBeenCalledWith({Image: {Bytes: buffer}});
                 expect(error).toEqual({
                     status: 400,
                     code: 'SmartCrop::PaddingOutOfBounds',
@@ -439,11 +439,11 @@ describe('applyEdits()', function() {
             }
         });
     });
-    describe('009/smartCrop/boundingBoxError', function() {
-        it('Should pass if an excessive faceIndex value is passed to the smartCrop filter', async function() {
+    describe('009/smartCrop/boundingBoxError', function () {
+        it('Should pass if an excessive faceIndex value is passed to the smartCrop filter', async function () {
             // Arrange
             const originalImage = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
-            const image = sharp(originalImage, { failOnError: false }).withMetadata();
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
             const buffer = await image.toBuffer();
             const edits = {
                 smartCrop: {
@@ -474,7 +474,7 @@ describe('applyEdits()', function() {
                 await imageHandler.applyEdits(image, edits);
             } catch (error) {
                 // Assert
-                expect(mockAws.detectFaces).toHaveBeenCalledWith({ Image: { Bytes: buffer }});
+                expect(mockAws.detectFaces).toHaveBeenCalledWith({Image: {Bytes: buffer}});
                 expect(error).toEqual({
                     status: 400,
                     code: 'SmartCrop::FaceIndexOutOfRange',
@@ -483,11 +483,11 @@ describe('applyEdits()', function() {
             }
         });
     });
-    describe('010/smartCrop/faceIndexUndefined', function() {
-        it('Should pass if a faceIndex value of undefined is passed to the smartCrop filter', async function() {
+    describe('010/smartCrop/faceIndexUndefined', function () {
+        it('Should pass if a faceIndex value of undefined is passed to the smartCrop filter', async function () {
             // Arrange
             const originalImage = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
-            const image = sharp(originalImage, { failOnError: false }).withMetadata();
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
             const buffer = await image.toBuffer();
             const edits = {
                 smartCrop: true
@@ -513,15 +513,15 @@ describe('applyEdits()', function() {
             const imageHandler = new ImageHandler(s3, rekognition);
             const result = await imageHandler.applyEdits(image, edits);
             // Assert
-            expect(mockAws.detectFaces).toHaveBeenCalledWith({ Image: { Bytes: buffer }});
+            expect(mockAws.detectFaces).toHaveBeenCalledWith({Image: {Bytes: buffer}});
             expect(result.options.input).not.toEqual(originalImage);
         });
     });
-    describe('011/resizeStringTypeNumber', function() {
-        it('Should pass if resize width and height are provided as string number to the function', async function() {
+    describe('011/resizeStringTypeNumber', function () {
+        it('Should pass if resize width and height are provided as string number to the function', async function () {
             // Arrange
             const originalImage = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
-            const image = sharp(originalImage, { failOnError: false }).withMetadata();
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
             const edits = {
                 resize: {
                     width: '99.1',
@@ -533,20 +533,20 @@ describe('applyEdits()', function() {
             const result = await imageHandler.applyEdits(image, edits);
             // Assert
             const resultBuffer = await result.toBuffer();
-            const convertedImage = await sharp(originalImage, { failOnError: false }).withMetadata().resize({ width: 99, height: 100 }).toBuffer();
+            const convertedImage = await sharp(originalImage, {failOnError: false}).withMetadata().resize({width: 99, height: 100}).toBuffer();
             expect(resultBuffer).toEqual(convertedImage);
         });
     });
-    describe('012/roundCrop/noOptions', function() {
-        it('Should pass if roundCrop keyName is passed with no additional options', async function() {
+    describe('012/roundCrop/noOptions', function () {
+        it('Should pass if roundCrop keyName is passed with no additional options', async function () {
             // Arrange
             const originalImage = Buffer.from('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAAEAAQDAREAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACv/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AfwD/2Q==', 'base64');
-            const image = sharp(originalImage, { failOnError: false }).withMetadata();
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
             const metadata = image.metadata();
-            
+
             const edits = {
                 roundCrop: true,
-                
+
             }
 
             // Act
@@ -555,17 +555,17 @@ describe('applyEdits()', function() {
 
             // Assert
             const expectedResult = {width: metadata.width / 2, height: metadata.height / 2}
-            expect(mockAws.getObject).toHaveBeenCalledWith({ Bucket: 'aaa', Key: 'bbb' });
+            expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'aaa', Key: 'bbb'});
             expect(result.options.input).not.toEqual(expectedResult);
         });
     });
-    describe('013/roundCrop/withOptions', function() {
-        it('Should pass if roundCrop keyName is passed with additional options', async function() {
+    describe('013/roundCrop/withOptions', function () {
+        it('Should pass if roundCrop keyName is passed with additional options', async function () {
             // Arrange
             const originalImage = Buffer.from('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAAEAAQDAREAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACv/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AfwD/2Q==', 'base64');
-            const image = sharp(originalImage, { failOnError: false }).withMetadata();
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
             const metadata = image.metadata();
-            
+
             const edits = {
                 roundCrop: {
                     top: 100,
@@ -573,7 +573,7 @@ describe('applyEdits()', function() {
                     rx: 100,
                     ry: 100,
                 },
-                
+
             }
 
             // Act
@@ -582,15 +582,15 @@ describe('applyEdits()', function() {
 
             // Assert
             const expectedResult = {width: metadata.width / 2, height: metadata.height / 2}
-            expect(mockAws.getObject).toHaveBeenCalledWith({ Bucket: 'aaa', Key: 'bbb' });
+            expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'aaa', Key: 'bbb'});
             expect(result.options.input).not.toEqual(expectedResult);
         });
     });
-    describe('014/contentModeration', function() {
-        it('Should pass and blur image with minConfidence provided', async function() {
+    describe('014/contentModeration', function () {
+        it('Should pass and blur image with minConfidence provided', async function () {
             // Arrange
             const originalImage = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
-            const image = sharp(originalImage, { failOnError: false }).withMetadata();
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
             const buffer = await image.toBuffer();
             const edits = {
                 contentModeration: {
@@ -603,15 +603,15 @@ describe('applyEdits()', function() {
                     promise() {
                         return Promise.resolve({
                             ModerationLabels: [
-                              {
-                                Confidence: 99.76720428466,
-                                Name: 'Smoking',
-                                ParentName: 'Tobacco'
-                              },
-                              { Confidence: 99.76720428466, Name: 'Tobacco', ParentName: '' }
+                                {
+                                    Confidence: 99.76720428466,
+                                    Name: 'Smoking',
+                                    ParentName: 'Tobacco'
+                                },
+                                {Confidence: 99.76720428466, Name: 'Tobacco', ParentName: ''}
                             ],
                             ModerationModelVersion: '4.0'
-                          });
+                        });
                     }
                 };
             });
@@ -620,14 +620,14 @@ describe('applyEdits()', function() {
             const result = await imageHandler.applyEdits(image, edits);
             const expected = image.blur(50);
             // Assert
-            expect(mockAws.detectFaces).toHaveBeenCalledWith({ Image: { Bytes: buffer }});
+            expect(mockAws.detectFaces).toHaveBeenCalledWith({Image: {Bytes: buffer}});
             expect(result.options.input).not.toEqual(originalImage);
             expect(result).toEqual(expected);
         });
-        it("should pass and blur to specified amount if blur option is provided", async function() {
+        it("should pass and blur to specified amount if blur option is provided", async function () {
             // Arrange
             const originalImage = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
-            const image = sharp(originalImage, { failOnError: false }).withMetadata();
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
             const buffer = await image.toBuffer();
             const edits = {
                 contentModeration: {
@@ -641,15 +641,15 @@ describe('applyEdits()', function() {
                     promise() {
                         return Promise.resolve({
                             ModerationLabels: [
-                              {
-                                Confidence: 99.76720428466,
-                                Name: 'Smoking',
-                                ParentName: 'Tobacco'
-                              },
-                              { Confidence: 99.76720428466, Name: 'Tobacco', ParentName: '' }
+                                {
+                                    Confidence: 99.76720428466,
+                                    Name: 'Smoking',
+                                    ParentName: 'Tobacco'
+                                },
+                                {Confidence: 99.76720428466, Name: 'Tobacco', ParentName: ''}
                             ],
                             ModerationModelVersion: '4.0'
-                          });
+                        });
                     }
                 };
             });
@@ -658,14 +658,14 @@ describe('applyEdits()', function() {
             const result = await imageHandler.applyEdits(image, edits);
             const expected = image.blur(100);
             // Assert
-            expect(mockAws.detectFaces).toHaveBeenCalledWith({ Image: { Bytes: buffer }});
+            expect(mockAws.detectFaces).toHaveBeenCalledWith({Image: {Bytes: buffer}});
             expect(result.options.input).not.toEqual(originalImage);
             expect(result).toEqual(expected);
         });
-        it("should pass and blur if content moderation label matches specied moderartion label", async function() {
+        it("should pass and blur if content moderation label matches specied moderartion label", async function () {
             // Arrange
             const originalImage = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
-            const image = sharp(originalImage, { failOnError: false }).withMetadata();
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
             const buffer = await image.toBuffer();
             const edits = {
                 contentModeration: {
@@ -678,15 +678,15 @@ describe('applyEdits()', function() {
                     promise() {
                         return Promise.resolve({
                             ModerationLabels: [
-                              {
-                                Confidence: 99.76720428466,
-                                Name: 'Smoking',
-                                ParentName: 'Tobacco'
-                              },
-                              { Confidence: 99.76720428466, Name: 'Tobacco', ParentName: '' }
+                                {
+                                    Confidence: 99.76720428466,
+                                    Name: 'Smoking',
+                                    ParentName: 'Tobacco'
+                                },
+                                {Confidence: 99.76720428466, Name: 'Tobacco', ParentName: ''}
                             ],
                             ModerationModelVersion: '4.0'
-                          });
+                        });
                     }
                 };
             });
@@ -695,14 +695,14 @@ describe('applyEdits()', function() {
             const result = await imageHandler.applyEdits(image, edits);
             const expected = image.blur(50);
             // Assert
-            expect(mockAws.detectFaces).toHaveBeenCalledWith({ Image: { Bytes: buffer }});
+            expect(mockAws.detectFaces).toHaveBeenCalledWith({Image: {Bytes: buffer}});
             expect(result.options.input).not.toEqual(originalImage);
             expect(result).toEqual(expected);
         });
-        it("should not blur if provided moderationLabels not found", async function() {
+        it("should not blur if provided moderationLabels not found", async function () {
             // Arrange
             const originalImage = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
-            const image = sharp(originalImage, { failOnError: false }).withMetadata();
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
             const buffer = await image.toBuffer();
             const edits = {
                 contentModeration: {
@@ -717,15 +717,15 @@ describe('applyEdits()', function() {
                     promise() {
                         return Promise.resolve({
                             ModerationLabels: [
-                              {
-                                Confidence: 99.76720428466,
-                                Name: 'Smoking',
-                                ParentName: 'Tobacco'
-                              },
-                              { Confidence: 99.76720428466, Name: 'Tobacco', ParentName: '' }
+                                {
+                                    Confidence: 99.76720428466,
+                                    Name: 'Smoking',
+                                    ParentName: 'Tobacco'
+                                },
+                                {Confidence: 99.76720428466, Name: 'Tobacco', ParentName: ''}
                             ],
                             ModerationModelVersion: '4.0'
-                          });
+                        });
                     }
                 };
             });
@@ -733,13 +733,13 @@ describe('applyEdits()', function() {
             const imageHandler = new ImageHandler(s3, rekognition);
             const result = await imageHandler.applyEdits(image, edits);
             // Assert
-            expect(mockAws.detectFaces).toHaveBeenCalledWith({ Image: { Bytes: buffer }});
+            expect(mockAws.detectFaces).toHaveBeenCalledWith({Image: {Bytes: buffer}});
             expect(result).toEqual(image);
         });
-        it("should fail if rekognition returns an error", async function() {
+        it("should fail if rekognition returns an error", async function () {
             // Arrange
             const originalImage = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
-            const image = sharp(originalImage, { failOnError: false }).withMetadata();
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
             const buffer = await image.toBuffer();
             const edits = {
                 contentModeration: {
@@ -755,7 +755,7 @@ describe('applyEdits()', function() {
                             status: 500,
                             code: 'InternalServerError',
                             message: 'Amazon Rekognition experienced a service issue. Try your call again.'
-                          });
+                        });
                     }
                 };
             });
@@ -763,14 +763,14 @@ describe('applyEdits()', function() {
             const imageHandler = new ImageHandler(s3, rekognition);
             try {
                 const result = await imageHandler.applyEdits(image, edits);
-            } catch(error) {
-            // Assert
-                expect(mockAws.detectFaces).toHaveBeenCalledWith({ Image: { Bytes: buffer }});
+            } catch (error) {
+                // Assert
+                expect(mockAws.detectFaces).toHaveBeenCalledWith({Image: {Bytes: buffer}});
                 expect(error).toEqual({
                     status: 500,
                     code: 'InternalServerError',
                     message: 'Amazon Rekognition experienced a service issue. Try your call again.'
-                  });
+                });
             }
         });
     });
@@ -779,14 +779,14 @@ describe('applyEdits()', function() {
 // ----------------------------------------------------------------------------
 // [async] getOverlayImage()
 // ----------------------------------------------------------------------------
-describe('getOverlayImage()', function() {
-    describe('001/validParameters', function() {
-        it('Should pass if the proper bucket name and key are supplied, simulating an image file that can be retrieved', async function() {
+describe('getOverlayImage()', function () {
+    describe('001/validParameters', function () {
+        it('Should pass if the proper bucket name and key are supplied, simulating an image file that can be retrieved', async function () {
             // Mock
             mockAws.getObject.mockImplementationOnce(() => {
                 return {
                     promise() {
-                        return Promise.resolve({ Body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64') });
+                        return Promise.resolve({Body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64')});
                     }
                 };
             });
@@ -795,12 +795,12 @@ describe('getOverlayImage()', function() {
             const metadata = await sharp(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64')).metadata();
             const result = await imageHandler.getOverlayImage('validBucket', 'validKey', '100', '100', '20', metadata);
             // Assert
-            expect(mockAws.getObject).toHaveBeenCalledWith({ Bucket: 'validBucket', Key: 'validKey' });
+            expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'validBucket', Key: 'validKey'});
             expect(result).toEqual(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACXBIWXMAAAsTAAALEwEAmpwYAAAADUlEQVQI12P4z8CQCgAEZgFlTg0nBwAAAABJRU5ErkJggg==', 'base64'));
         });
     });
-    describe('002/imageDoesNotExist', function() {
-        it('Should throw an error if an invalid bucket or key name is provided, simulating a non-existant overlay image', async function() {
+    describe('002/imageDoesNotExist', function () {
+        it('Should throw an error if an invalid bucket or key name is provided, simulating a non-existant overlay image', async function () {
             // Mock
             mockAws.getObject.mockImplementationOnce(() => {
                 return {
@@ -819,7 +819,7 @@ describe('getOverlayImage()', function() {
                 await imageHandler.getOverlayImage('invalidBucket', 'invalidKey', '100', '100', '20', metadata);
             } catch (error) {
                 // Assert
-                expect(mockAws.getObject).toHaveBeenCalledWith({ Bucket: 'invalidBucket', Key: 'invalidKey' });
+                expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'invalidBucket', Key: 'invalidKey'});
                 expect(error).toEqual({
                     status: 500,
                     code: 'InternalServerError',
@@ -833,9 +833,9 @@ describe('getOverlayImage()', function() {
 // ----------------------------------------------------------------------------
 // [async] getCropArea()
 // ----------------------------------------------------------------------------
-describe('getCropArea()', function() {
-    describe('001/validParameters', function() {
-        it('Should pass if the crop area can be calculated using a series of valid inputs/parameters', function() {
+describe('getCropArea()', function () {
+    describe('001/validParameters', function () {
+        it('Should pass if the crop area can be calculated using a series of valid inputs/parameters', function () {
             // Arrange
             const boundingBox = {
                 Height: 0.18,
@@ -843,7 +843,7 @@ describe('getCropArea()', function() {
                 Top: 0.33,
                 Width: 0.23
             };
-            const options = { padding: 20 };
+            const options = {padding: 20};
             const metadata = {
                 width: 200,
                 height: 400
@@ -867,9 +867,9 @@ describe('getCropArea()', function() {
 // ----------------------------------------------------------------------------
 // [async] getBoundingBox()
 // ----------------------------------------------------------------------------
-describe('getBoundingBox()', function() {
-    describe('001/validParameters', function() {
-        it('Should pass if the proper parameters are passed to the function', async function() {
+describe('getBoundingBox()', function () {
+    describe('001/validParameters', function () {
+        it('Should pass if the proper parameters are passed to the function', async function () {
             // Arrange
             const currentImage = Buffer.from('TestImageData');
             const faceIndex = 0;
@@ -900,12 +900,12 @@ describe('getBoundingBox()', function() {
                 Top: 0.33,
                 Width: 0.23
             };
-            expect(mockAws.detectFaces).toHaveBeenCalledWith({ Image: { Bytes: currentImage }});
+            expect(mockAws.detectFaces).toHaveBeenCalledWith({Image: {Bytes: currentImage}});
             expect(result).toEqual(expectedResult);
         });
     });
-    describe('002/errorHandling', function() {
-        it('Should simulate an error condition returned by Rekognition', async function() {
+    describe('002/errorHandling', function () {
+        it('Should simulate an error condition returned by Rekognition', async function () {
             // Arrange
             const currentImage = Buffer.from('NotTestImageData');
             const faceIndex = 0;
@@ -926,7 +926,7 @@ describe('getBoundingBox()', function() {
                 await imageHandler.getBoundingBox(currentImage, faceIndex);
             } catch (error) {
                 // Assert
-                expect(mockAws.detectFaces).toHaveBeenCalledWith({ Image: { Bytes: currentImage }});
+                expect(mockAws.detectFaces).toHaveBeenCalledWith({Image: {Bytes: currentImage}});
                 expect(error).toEqual({
                     status: 500,
                     code: 'InternalServerError',
@@ -940,7 +940,7 @@ describe('getBoundingBox()', function() {
             //Arrange
             const currentImage = Buffer.from('TestImageData');
             const faceIndex = 0;
-        
+
             // Mock
             mockAws.detectFaces.mockImplementationOnce(() => {
                 return {
@@ -955,7 +955,7 @@ describe('getBoundingBox()', function() {
             //Act
             const imageHandler = new ImageHandler(s3, rekognition);
             const result = await imageHandler.getBoundingBox(currentImage, faceIndex);
-            
+
             // Assert
             const expectedResult = {
                 Height: 1,
@@ -963,16 +963,16 @@ describe('getBoundingBox()', function() {
                 Top: 0,
                 Width: 1
             };
-            expect(mockAws.detectFaces).toHaveBeenCalledWith({ Image: { Bytes: currentImage }});
-            expect(result).toEqual(expectedResult);  
-        });     
+            expect(mockAws.detectFaces).toHaveBeenCalledWith({Image: {Bytes: currentImage}});
+            expect(result).toEqual(expectedResult);
+        });
     });
     describe('004/boundsGreaterThanImageDimensions', function () {
         it('Should pass if bounds detected go beyond the image dimensions', async function () {
             //Arrange
             const currentImage = Buffer.from('TestImageData');
             const faceIndex = 0;
-        
+
             // Mock
             mockAws.detectFaces.mockImplementationOnce(() => {
                 return {
@@ -994,7 +994,7 @@ describe('getBoundingBox()', function() {
             //Act
             const imageHandler = new ImageHandler(s3, rekognition);
             const result = await imageHandler.getBoundingBox(currentImage, faceIndex);
-            
+
             // Assert
             const expectedResult = {
                 Height: 0.70,
@@ -1002,8 +1002,30 @@ describe('getBoundingBox()', function() {
                 Top: 0.30,
                 Width: 0.50
             };
-            expect(mockAws.detectFaces).toHaveBeenCalledWith({ Image: { Bytes: currentImage }});
-            expect(result).toEqual(expectedResult);  
-        });     
+            expect(mockAws.detectFaces).toHaveBeenCalledWith({Image: {Bytes: currentImage}});
+            expect(result).toEqual(expectedResult);
+        });
+    });
+    describe('highlight/options', function () {
+        it('Should pass if an edit with the highlight keyname is passed to the function', async function () {
+            // Arrange
+            const originalImage = Buffer.from('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAAEAAQDAREAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACv/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AfwD/2Q==', 'base64');
+            const image = sharp(originalImage, {failOnError: false}).withMetadata();
+            const edits = {
+                highlight: [
+                    {
+                        left: 1,
+                        top: 1,
+                        width: 2,
+                        height: 2
+                    }
+                ]
+            }
+            // Act
+            const imageHandler = new ImageHandler(s3, rekognition);
+            const result = await imageHandler.applyEdits(image, edits);
+            // Assert
+            expect(result.options.input).not.toEqual(originalImage);
+        });
     });
 });
