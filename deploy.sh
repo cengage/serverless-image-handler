@@ -26,5 +26,5 @@ export TEMPLATE_URL=https://${DIST_OUTPUT_BUCKET}-${REGION}.s3.amazonaws.com/${D
 echo TEMPLATE_URL=${TEMPLATE_URL}
 
 aws cloudformation update-stack --stack-name  ${CLOUDFORMATION_STACK} --template-url ${TEMPLATE_URL} --capabilities CAPABILITY_NAMED_IAM --parameters "ParameterKey=SourceBuckets,UsePreviousValue=true"
-
+aws cloudformation wait stack-update-complete --stack-name  ${CLOUDFORMATION_STACK}
 aws cloudfront create-invalidation --distribution-id ${CLOUDFRONT_ID} --paths '/*'
