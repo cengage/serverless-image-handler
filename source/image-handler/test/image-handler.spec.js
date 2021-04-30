@@ -182,6 +182,25 @@ describe('process()', function () {
             expect(metadata).not.toHaveProperty('orientation');
         });
     });
+    describe('008/scaledImage', function () {
+        it('Should pass if the output image is scaled from the input image', async function () {
+            // Arrange
+            const request = {
+                requestType: "default",
+                bucket: "sample-bucket",
+                key: "sample-image-001.jpg",
+                edits: {
+                    scale: 2.5
+                },
+                originalImage: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64')
+            }
+            // Act
+            const imageHandler = new ImageHandler(s3, rekognition);
+            const result = await imageHandler.process(request);
+            // Assert
+            expect(result).not.toEqual(request.originalImage);
+        });
+    });
 });
 
 // ----------------------------------------------------------------------------

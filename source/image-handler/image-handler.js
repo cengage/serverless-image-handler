@@ -88,7 +88,17 @@ class ImageHandler {
             delete edits.highlight;
         }
 
-        if (edits.resize === undefined) {
+        // Convert Scale to resize, overriding any current resize ops
+        if (edits.scale !== undefined) {
+            const scale = parseFloat(edits.scale) || 1.00;
+            image = await image.metadata()
+                .then(function (metadata) {
+                    return image
+                        .resize(Math.round(metadata.width * scale));
+                });
+            delete edits.resize;
+            delete edits.scale;
+        } else if (edits.resize === undefined) {
             edits.resize = {};
             edits.resize.fit = 'inside';
         } else {

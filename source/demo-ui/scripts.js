@@ -31,6 +31,7 @@ function importOriginalImage() {
 
 function getPreviewImage() {
     // Gather the editor inputs
+    const _scale = $(`#editor-scale`).first().val();
     const _width = $(`#editor-width`).first().val();
     const _height = $(`#editor-height`).first().val();
     const _resize = $(`#editor-resize-mode`).first().val();
@@ -59,6 +60,7 @@ function getPreviewImage() {
     if (_fillColor !== "") { _edits.resize.background = hexToRgbA(_fillColor, 1) }
     if (_backgroundColor !== "") { _edits.flatten = { background: hexToRgbA(_backgroundColor, undefined) }}
     if (_grayscale) { _edits.grayscale = _grayscale }
+    if (_scale) { _edits.scale = parseFloat(_scale) }
     if (_flip) { _edits.flip = _flip }
     if (_flop) { _edits.flop = _flop }
     if (_negative) { _edits.negate = _negative }
